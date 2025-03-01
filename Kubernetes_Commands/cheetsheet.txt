@@ -1,0 +1,19 @@
+# Show all the nodes in kubernetes system 
+$ kubectl get nodes
+
+# show the details of nodes
+kubectl describe node ip-172-31-37-189.ap-south-1.compute.internal
+
+# check your all pods 
+kubectl get pod -A 
+kubectl get pod --all-namespaces 
+
+# check your namespace as well create and delete
+kubectl get ns 
+kubectl create ns project1
+kubectl delete ns project1
+
+# create resource in kubernetes using yaml 
+kubectl apply -f namespace.yaml 
+kubectl delete -f namespace.yaml 
+kubectl replace -f namespace.yaml
