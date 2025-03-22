@@ -1,0 +1,20 @@
+1. What is Deployment ? 
+
+A Deployment manages a set of Pods to run an application workload, "usually one that doesn't maintain state."
+
+2. WHere we can use? 
+
+1 Application 
+2. update and manage application 
+3. application scale 
+4. Revision History 
+
+
+3. Default deployment scale on replica base and it will maintain by node selector, affintiy or taints. 
+
+2. what is daemonsets ? 
+
+Daeamosets is maintain pod and ensure that pod is running on everynode.
+
+StatefulSet runs a group of Pods, and maintains a sticky identity for each of those Pods. 
+This is useful for managing applications that need persistent storage or a stable, unique network identity.

@@ -1,0 +1,23 @@
+# kubectl create Deployment test --image=nginx --port=80 
+
+# kubectl get deployment 
+
+# kubectl get deployment,pod 
+
+# kubectl scale deployment test --replicas=3   
+
+# kubectl describe deployment test 
+
+# kubectl edit deployment test 
+
+# kubectl delete deployment test
+
+# kubectl get ds 
+
+# kubectl create ds test --image=nginx --port=80 
+
+#kubectl describe ds test 
+
+# kubectl get pod 
+
+# kubectl delete  ds test 
