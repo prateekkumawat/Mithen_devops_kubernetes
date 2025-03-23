@@ -1,0 +1,31 @@
+# create a Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mithen 
+
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webmithen 
+  namespace: mithen 
+spec:
+  selector:
+    matchLabels:
+      app: webmithen  
+  template:
+    metadata:
+      labels:
+        app: webmithen  
+    spec:
+      containers:
+      - name: webmithen  
+        image: prateekkumawat/mithen:web
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
