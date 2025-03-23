@@ -44,4 +44,4 @@ spec:
   - name: webmithen-port
     port:  80
     targetPort: 80
-    nodePort: 309993
+    nodePort: 30993
