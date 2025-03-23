@@ -35,7 +35,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: webmithen-svc
-  namespcae: mithen
+  namespace: mithen
 spec:
   selector:
     app: webmithen
