@@ -22,10 +22,6 @@ spec:
             value: prateek
           - name: MYSQL_PASSWORD
             value: redhat
-        resources:
-          limits:
-            memory: "700Mi"
-            cpu: "2"
         ports:
         - containerPort: 3306
 ---
