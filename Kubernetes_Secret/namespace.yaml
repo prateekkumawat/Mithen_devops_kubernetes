@@ -1,0 +1,8 @@
+# crate a namespace 
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secure
+  labels: 
+    app: database

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-secure
+  namespace: secure
+  labels: 
+    app: database
+spec:
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: mysql-secure
+        image: mysql:latest
+        env: 
+          - name: MYSQL_ROOT_PASSWORD
+            valuesform:
+              secretKeyRef:
+                  name: db-secret
+                  key: password
+          - name: MYSQL_USER
+            valuesform:
+              secretKeyRef:
+                  name: db-secret
+                  key: username
+          - name: MYSQL_PASSWORD
+            valuesform:
+              secretKeyRef:
+                  name: db-secret
+                  key: password
+        ports:
+        - containerPort: 3306
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-secure-svc
+  namespace: secure
+spec:
+  selector:
+    app: database
+  type: NodePort
+  ports:
+  - name: mysql-service-port
+    port: 3306
+    targetPort: 3306
+    nodePort: 30994
