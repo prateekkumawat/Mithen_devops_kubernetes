@@ -19,17 +19,17 @@ spec:
         image: mysql:latest
         env: 
           - name: MYSQL_ROOT_PASSWORD
-            valuesform:
+            valueForm:
               secretKeyRef:
                   name: db-secret
                   key: password
           - name: MYSQL_USER
-            valuesform:
+            valueForm:
               secretKeyRef:
                   name: db-secret
                   key: username
           - name: MYSQL_PASSWORD
-            valuesform:
+            valueForm:
               secretKeyRef:
                   name: db-secret
                   key: password
