@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: secure
+  labels: 
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - name: postgres
+          image: prateekkumawat/infra:postgresql-11.14.0-debian-10-r22
+          imagePullPolicy: IfNotPresent
+          resources: 
+            limits: 
+              memory: "2G"
+              cpu: "2"
+            requests: 
+              memory: "1G"
+              cpu: "1"  
+          ports:
+            - containerPort: 5432
+      imagePullSecrets:
+        - name: docker-secret    
