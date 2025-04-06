@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storageapp-pod
+  namespace: storage
+  labels:
+    app: storageapp
+spec:
+  selector:
+    matchLabels:
+      app: storageapp
+  template:
+    metadata:
+      labels:
+        app: storageapp
+    spec:
+      containers:
+      - name: storageapp
+        image: nginx:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: webdata
+            mountPath: /usr/share/nginx/html/
+      volumes:
+        - name: webdata
+          persistentVolumeClaim:
+            claimName: storage-pvc     
