@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-database
+  namespace: database
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        env: 
+          - name: MYSQL_ROOT_PASSWORD
+            value: redhat
+          - name: MYSQL_USER
+            value: prateek
+          - name: MYSQL_PASSWORD
+            value: redhat
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+          - name: datavol
+            mountPath: /var/lib/mysql/
+      volumes:
+        - name: datavol
+          persistentVolumeClaim:
+            claimName: database-pvc    
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-service
+  namespace: database
+spec:
+  selector:
+    app: mysql
+  type: NodePort
+  ports:
+  - name: mysql-service-port
+    port: 3306
+    targetPort: 3306
+    nodePort: 30994
