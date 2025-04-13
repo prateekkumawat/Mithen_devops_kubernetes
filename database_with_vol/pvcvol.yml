@@ -11,3 +11,17 @@ spec:
       storage: 2G
   accessModes:
     - ReadWriteOnce
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pvc
+  namespace: database
+  labels:
+    app: wordpress
+spec:
+  resources:
+    requests:
+      storage: 2G
+  accessModes:
+    - ReadWriteOnce
