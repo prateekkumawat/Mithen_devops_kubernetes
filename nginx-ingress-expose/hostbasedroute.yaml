@@ -11,7 +11,7 @@ spec:
   - host: nginx.api.ocelottraining.com 
     http:
       paths:
-      - path: /nginx
+      - path: /
         pathType: Prefix
         backend:
           service:
