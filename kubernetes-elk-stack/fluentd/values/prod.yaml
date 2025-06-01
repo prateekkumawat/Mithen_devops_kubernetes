@@ -116,7 +116,6 @@ service:
 ## Fluentd list of plugins to install
 ##
 plugins: 
-  - fluent-plugin-aws-elasticsearch-service
   - fluent-plugin-elasticsearch
 
 ## Fluentd configurations:
