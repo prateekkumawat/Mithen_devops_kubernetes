@@ -215,6 +215,7 @@ fileConfigs:
         scheme http
         # Compatibility fix for Elasticsearch 8+
         enable_compatibility_mode true
+        verify_es_version_at_startup false
         logstash_format true
         include_timestamp true
         reconnect_on_error true
