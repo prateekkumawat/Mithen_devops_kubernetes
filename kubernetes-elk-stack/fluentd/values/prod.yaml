@@ -211,10 +211,6 @@ fileConfigs:
         # aws_region us-east-1
         host elasticsearch.default.svc.cluster.local
         scheme http
-        user admin-master
-        password P9g{j{727BkB
-        # port 443
-        # aws_sigv4 true
         logstash_format true
         include_timestamp true
         reconnect_on_error true
