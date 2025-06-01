@@ -7,8 +7,8 @@ image:
 
 serviceAccount:
   create: true
-  annotations: 
-     eks.amazonaws.com/role-arn: arn:aws:iam::973991485835:role/mynx-use1-prod-fluentd-role
+  annotations: {}
+  name: null
   
 rbac:
   create: true
@@ -80,15 +80,19 @@ initContainers: []
 mountVarLogDirectory: true
 mountDockerContainersDirectory: true
 
-volumes: []
+volumeMounts:
+  - name: fluentd-buffer
+    mountPath: /buffers
 
-volumeMounts: []
+volumes:
+  - name: fluentd-buffer
+    emptyDir: {}
 
 ## Only available if kind is StatefulSet
 ## Fluentd persistence
 ##
 persistence:
-  enabled: true
+  enabled: false
   storageClass: "local-path"
   accessMode: ReadWriteOnce
   size: 10Gi
