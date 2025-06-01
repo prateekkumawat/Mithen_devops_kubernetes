@@ -213,7 +213,6 @@ fileConfigs:
         @type elasticsearch
         host elasticsearch.default.svc.cluster.local
         scheme http
-        # Compatibility fix for Elasticsearch 8+
         enable_compatibility_mode true
         verify_es_version_at_startup false
         logstash_format true
@@ -224,8 +223,7 @@ fileConfigs:
         buffer_chunk_limit 2M
         buffer_queue_limit 8
         flush_interval 5s
-        retry_tag retry.elasticsearch
-        
+        retry_tag retry.elasticsearch 
       </match>
     </label>
 
