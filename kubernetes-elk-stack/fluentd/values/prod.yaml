@@ -166,10 +166,10 @@ fileConfigs:
         @label @FLUENT_LOG
       </match>
 
-      # <match kubernetes.var.log.containers.**_kube-system_**>
-      #   @type null
-      #   @id ignore_kube_system_logs
-      # </match>
+      <match kubernetes.var.log.containers.**_kube-system_**>
+        @type null
+        @id ignore_kube_system_logs
+       </match>
 
       <filter kubernetes.**>
         @type kubernetes_metadata
