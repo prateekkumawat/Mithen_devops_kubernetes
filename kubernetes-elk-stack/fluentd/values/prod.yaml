@@ -211,9 +211,10 @@ fileConfigs:
     <label @OUTPUT>
       <match **>
         @type elasticsearch
-        # aws_region us-east-1
         host elasticsearch.default.svc.cluster.local
         scheme http
+        # Compatibility fix for Elasticsearch 8+
+        enable_compatibility_mode true
         logstash_format true
         include_timestamp true
         reconnect_on_error true
