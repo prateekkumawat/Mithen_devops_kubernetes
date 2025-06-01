@@ -1,0 +1,59 @@
+# Install provisioner for dynamic storage 
+
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
+
+# kubectl get sc 
+
+[root@ip-172-31-15-199 ec2-user]# kubectl get sc
+NAME            PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-path      rancher.io/local-path          Delete          WaitForFirstConsumer   false                  35m
+
+#apply your ES Chart using Helm 
+
+helm install elasticsearch bitnami/elasticsearch 
+
+kubectl get pvc 
+
+all 4 pvc show pendig status 
+
+there is no storageclass apply there 
+
+kubectl edit pvc data-elasticsearch-data-0 
+and add below line there 
+
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: local-path  ------> add this line 
+  volumeMode: Filesystem
+
+  save and check your all pvc bound with pv and all pv auto created 
+
+
+# apply svc changes using below process
+kubectl edit svc elasticsearch
+
+
+ ports:
+  - name: tcp-rest-api
+    nodePort: 30404    -----> change tcp 
+    port: 9200
+    protocol: TCP
+    targetPort: rest-api
+  - name: tcp-transport
+    nodePort: 31000 -----> change tcp 
+    port: 9300
+    protocol: TCP
+    targetPort: 9300
+  selector:
+    app.kubernetes.io/component: coordinating-only
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/name: elasticsearch
+  sessionAffinity: None
+  type: NodePort ----- change 
+
+  [root@ip-172-31-15-199 ec2-user]# kubectl get svc
+NAME                            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE
+elasticsearch                   NodePort    10.105.227.126   <none>        9200:30404/TCP,9300:31000/TCP   37m

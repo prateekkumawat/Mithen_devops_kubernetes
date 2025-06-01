@@ -1,0 +1,226 @@
+# azureblob, cloudwatch, elasticsearch7, elasticsearch8, gcs, graylog , kafka, kafka2, kinesis, opensearch
+variant: elasticsearch8
+
+image:
+  repository: "fluent/fluentd-kubernetes-daemonset"
+  pullPolicy: "IfNotPresent"
+
+serviceAccount:
+  create: true
+  annotations: 
+     eks.amazonaws.com/role-arn: arn:aws:iam::973991485835:role/mynx-use1-prod-fluentd-role
+  
+rbac:
+  create: true
+
+livenessProbe:
+  httpGet:
+    path: /metrics
+    port: metrics
+
+readinessProbe:
+  httpGet:
+    path: /metrics
+    port: metrics
+
+resources: {}
+  # requests:
+  #   cpu: 10m
+  #   memory: 128Mi
+  # limits:
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+## Node tolerations for server scheduling to nodes with taints
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+##
+# tolerations: 
+#   - effect: NoSchedule
+#     key: component
+#     value: infra
+
+## Affinity and anti-affinity
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+# affinity: 
+#     nodeAffinity:
+#         requiredDuringSchedulingIgnoredDuringExecution:
+#           nodeSelectorTerms:
+#           - matchExpressions:
+#             - key: schedule-on
+#               operator: In
+#               values:
+#               - "infra"
+#             - key: affinity
+#               operator: In
+#               values:
+#               - "on-demand" 
+
+## Additional environment variables to set for fluentd pods
+env: []
+  # - name: "FLUENTD_CONF"
+  #   value: "../../../etc/fluent/fluent.conf"
+  # - name: FLUENT_ELASTICSEARCH_HOST
+  #   value: "elasticsearch-master"
+  # - name: FLUENT_ELASTICSEARCH_PORT
+  #   value: "9200"
+
+envFrom: []
+
+initContainers: []
+
+## Name of the configMap containing a custom fluentd.conf configuration file to use instead of the default.
+# mainConfigMapNameOverride: ""
+
+## Name of the configMap containing files to be placed under /etc/fluent/config.d/
+## NOTE: This will replace ALL default files in the aforementioned path!
+# extraFilesConfigMapNameOverride: ""
+
+mountVarLogDirectory: true
+mountDockerContainersDirectory: true
+
+volumes: []
+
+volumeMounts: []
+
+## Only available if kind is StatefulSet
+## Fluentd persistence
+##
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+## Fluentd service
+##
+service:
+  enabled: true
+  type: "NodePort"
+  annotations: {}
+  # loadBalancerIP:
+  # externalTrafficPolicy: Local
+  ports: []
+  # - name: "forwarder"
+  #   protocol: TCP
+  #   containerPort: 24224
+
+## Fluentd list of plugins to install
+##
+plugins: 
+  - fluent-plugin-aws-elasticsearch-service
+  - fluent-plugin-elasticsearch
+
+## Fluentd configurations:
+##
+fileConfigs:
+  01_sources.conf: |-
+    ## logs from podman
+    <source>
+      @type tail
+      @id in_tail_container_logs
+      @label @KUBERNETES
+      path /var/log/containers/*.log
+      pos_file /var/log/fluentd-containers.log.pos
+      tag kubernetes.*
+      read_from_head true
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+          time_key time
+          time_type string
+          time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+          keep_time_key false
+        </pattern>
+        <pattern>
+          format regexp
+          expression /^(?<time>.+) (?<stream>stdout|stderr)( (.))? (?<log>.*)$/
+          time_format '%Y-%m-%dT%H:%M:%S.%NZ'
+          keep_time_key false
+        </pattern>
+      </parse>
+      emit_unmatched_lines true
+    </source>
+
+    # expose metrics in prometheus format
+    <source>
+      @type prometheus
+      bind 0.0.0.0
+      port 24231
+      metrics_path /metrics
+    </source>
+
+  02_filters.conf: |-
+    <label @KUBERNETES>
+      <match kubernetes.var.log.containers.fluentd**>
+        @type relabel
+        @label @FLUENT_LOG
+      </match>
+
+      # <match kubernetes.var.log.containers.**_kube-system_**>
+      #   @type null
+      #   @id ignore_kube_system_logs
+      # </match>
+
+      <filter kubernetes.**>
+        @type kubernetes_metadata
+        @id filter_kube_metadata
+        skip_labels false
+        skip_container_metadata false
+        skip_namespace_metadata true
+        skip_master_url true
+      </filter>
+
+      <match **>
+        @type relabel
+        @label @DISPATCH
+      </match>
+    </label>
+
+  03_dispatch.conf: |-
+    <label @DISPATCH>
+      <filter **>
+        @type prometheus
+        <metric>
+          name fluentd_input_status_num_records_total
+          type counter
+          desc The total number of incoming records
+          <labels>
+            tag ${tag}
+            hostname ${hostname}
+          </labels>
+        </metric>
+      </filter>
+
+      <match **>
+        @type relabel
+        @label @OUTPUT
+      </match>
+    </label>
+
+  04_outputs.conf: |-
+    <label @OUTPUT>
+      <match **>
+        @type elasticsearch
+        # aws_region us-east-1
+        host elasticsearch.default.svc.cluster.local
+        scheme http
+        user admin-master
+        password P9g{j{727BkB
+        # port 443
+        # aws_sigv4 true
+        logstash_format true
+        include_timestamp true
+        reconnect_on_error true
+        reload_on_failure true
+        request_timeout 15s
+        buffer_chunk_limit 2M
+        buffer_queue_limit 8
+        flush_interval 5s
+        retry_tag retry.elasticsearch
+        
+      </match>
+    </label>
+
