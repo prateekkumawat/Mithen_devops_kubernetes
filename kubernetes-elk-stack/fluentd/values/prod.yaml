@@ -58,13 +58,16 @@ nodeSelector: {}
 #               - "on-demand" 
 
 ## Additional environment variables to set for fluentd pods
-env: []
+env: 
+  - name: FLUENT_ELASTICSEARCH_ENABLE_API_VERSION
+    value:  "true"
   # - name: "FLUENTD_CONF"
   #   value: "../../../etc/fluent/fluent.conf"
   # - name: FLUENT_ELASTICSEARCH_HOST
   #   value: "elasticsearch-master"
   # - name: FLUENT_ELASTICSEARCH_PORT
   #   value: "9200"
+    
 
 envFrom: []
 
