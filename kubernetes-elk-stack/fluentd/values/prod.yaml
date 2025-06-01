@@ -214,6 +214,7 @@ fileConfigs:
         host elasticsearch.default.svc.cluster.local
         scheme http
         enable_compatibility_mode true
+        suppress_type_name true
         verify_es_version_at_startup false
         logstash_format true
         include_timestamp true
