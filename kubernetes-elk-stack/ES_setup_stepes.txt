@@ -57,3 +57,14 @@ kubectl edit svc elasticsearch
   [root@ip-172-31-15-199 ec2-user]# kubectl get svc
 NAME                            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE
 elasticsearch                   NodePort    10.105.227.126   <none>        9200:30404/TCP,9300:31000/TCP   37m
+
+
+# Allow Fluentd to install
+cd fluentd  
+helm install fluentd . -f values.yaml
+
+
+# Allow Kibana 
+
+cd kibana 
+helm insall kibana . -f values.yaml 
