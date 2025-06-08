@@ -362,12 +362,12 @@ service:
     http: 5601
   ## @param service.type Kubernetes Service type
   ##
-  type: ClusterIP
+  type: NodePort
   ## @param service.nodePorts.http Specify the nodePort value for the LoadBalancer and NodePort service types
   ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
   ##
   nodePorts:
-    http: ""
+    http: 31000
   ## @param service.clusterIP %%MAIN_CONTAINER_NAME%% service Cluster IP
   ## e.g.:
   ## clusterIP: None
@@ -817,7 +817,7 @@ elasticsearch:
   hosts: [ elasticsearch.default.svc.cluster.local ]
   ## @param elasticsearch.port Elasticsearch port
   ##
-  port: ""
+  port: 9200
   security:
     auth:
       ## @param elasticsearch.security.auth.enabled Set to 'true' if Elasticsearch has authentication enabled
