@@ -1,4 +1,4 @@
-Setup will be run on M5.xlarge 
+Setup will be run on M5.xlarge instance
 
 Step1  # Install provisioner for dynamic storage 
 
