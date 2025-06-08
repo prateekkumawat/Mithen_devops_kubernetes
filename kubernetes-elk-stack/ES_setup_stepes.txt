@@ -1,4 +1,4 @@
-# Install provisioner for dynamic storage 
+Step1  # Install provisioner for dynamic storage 
 
 kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
 
@@ -8,9 +8,16 @@ kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisione
 NAME            PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
 local-path      rancher.io/local-path          Delete          WaitForFirstConsumer   false                  35m
 
-#apply your ES Chart using Helm 
+# Step 2 : apply your ES Chart using Helm 
 
-helm install elasticsearch bitnami/elasticsearch 
+use given chart using command  
+
+cd  elasticsearch
+
+helm install elasticsearch . -f values.yaml
+
+
+# chart copied from #helm install elasticsearch bitnami/elasticsearch 
 
 kubectl get pvc 
 
