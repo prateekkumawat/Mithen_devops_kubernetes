@@ -1233,7 +1233,7 @@ data:
     ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
     ##   GKE, AWS & OpenStack)
     ##
-    storageClass: ""
+    storageClass: "local-path"
     ## @param data.persistence.existingClaim Existing Persistent Volume Claim
     ## then accept the value as an existing Persistent Volume Claim to which
     ## the container should be bound
@@ -1270,7 +1270,7 @@ data:
     whenScaled: Retain
     ## @param data.persistentVolumeClaimRetentionPolicy.whenDeleted Volume retention behavior that applies when the StatefulSet is deleted
     ##
-    whenDeleted: Retain
+    whenDeleted: Delete
 
 
   ## Pods Service Account
