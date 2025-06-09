@@ -4,7 +4,7 @@ fullnameOverride: ""
 # DaemonSet, Deployment or StatefulSet
 kind: "DaemonSet"
 # azureblob, cloudwatch, elasticsearch7, elasticsearch8, gcs, graylog , kafka, kafka2, kinesis, opensearch
-variant: elasticsearch7
+variant: elasticsearch8
 # # Only applicable for Deployment or StatefulSet
 # replicaCount: 1
 
@@ -270,10 +270,10 @@ metrics:
 ## Grafana Monitoring Dashboard
 ##
 dashboards:
-  enabled: "true"
+  enabled: "false"
   namespace: ""
   labels:
-    grafana_dashboard: '"1"'
+    grafana_dashboard: '"0"'
 
 ## Fluentd list of plugins to install
 ##
@@ -286,11 +286,24 @@ configMapConfigs: []
 #  - fluentd-prometheus-conf
 #  - fluentd-systemd-conf
 
-## Fluentd configurations:
-##
+# 
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    # - host: fluentd.example.tld
+    - port: 9880
+
+  tls: []
+  # - secretName: fluentd-tls
+  #   hosts:
+  #     - fluentd.example.tld
+
 fileConfigs:
   01_sources.conf: |-
-    ## logs from podman
     <source>
       @type tail
       @id in_tail_container_logs
@@ -318,14 +331,6 @@ fileConfigs:
       emit_unmatched_lines true
     </source>
 
-    # expose metrics in prometheus format
-    <source>
-      @type prometheus
-      bind 0.0.0.0
-      port 24231
-      metrics_path /metrics
-    </source>
-
   02_filters.conf: |-
     <label @KUBERNETES>
       <match kubernetes.var.log.containers.fluentd**>
@@ -333,14 +338,8 @@ fileConfigs:
         @label @FLUENT_LOG
       </match>
 
-      # <match kubernetes.var.log.containers.**_kube-system_**>
-      #   @type null
-      #   @id ignore_kube_system_logs
-      # </match>
-
       <filter kubernetes.**>
         @type kubernetes_metadata
-        @id filter_kube_metadata
         skip_labels false
         skip_container_metadata false
         skip_namespace_metadata true
@@ -355,19 +354,6 @@ fileConfigs:
 
   03_dispatch.conf: |-
     <label @DISPATCH>
-      <filter **>
-        @type prometheus
-        <metric>
-          name fluentd_input_status_num_records_total
-          type counter
-          desc The total number of incoming records
-          <labels>
-            tag ${tag}
-            hostname ${hostname}
-          </labels>
-        </metric>
-      </filter>
-
       <match **>
         @type relabel
         @label @OUTPUT
@@ -378,26 +364,13 @@ fileConfigs:
     <label @OUTPUT>
       <match **>
         @type elasticsearch
-        host "elasticsearch"
+        host elasticsearch.default.svc.cluster.local
         port 9200
-        path ""
-        user elastic
-        password changeme
-        # Don't wait for elastic to start up.
+        logstash_format true
+        include_timestamp true
+        reconnect_on_error true
+        reload_connections false
+        reload_on_failure true
         verify_es_version_at_startup false
       </match>
     </label>
-
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    # - host: fluentd.example.tld
-    - port: 9880
-
-  tls: []
-  # - secretName: fluentd-tls
-  #   hosts:
-  #     - fluentd.example.tld
