@@ -381,6 +381,14 @@ fileConfigs:
         host "elasticsearch.default.svc.cluster.local"
         port 9200
         path ""
+        scheme http
+        index_name fluentd-%Y.%m.%d
+        include_timestamp true
+        logstash_format false
+        type_name _doc
+        reconnect_on_error true
+        reload_connections false
+        flush_interval 5s
         # Don't wait for elastic to start up.
         verify_es_version_at_startup false
       </match>
