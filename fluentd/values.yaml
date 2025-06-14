@@ -381,8 +381,6 @@ fileConfigs:
         host "elasticsearch.default.svc.cluster.local"
         port 9200
         path ""
-        user elastic
-        password changeme
         # Don't wait for elastic to start up.
         verify_es_version_at_startup false
       </match>
