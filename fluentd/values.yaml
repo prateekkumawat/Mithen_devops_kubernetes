@@ -385,7 +385,6 @@ fileConfigs:
         index_name fluentd-%Y.%m.%d
         include_timestamp true
         logstash_format false
-        type_name _doc
         reconnect_on_error true
         reload_connections false
         flush_interval 5s
