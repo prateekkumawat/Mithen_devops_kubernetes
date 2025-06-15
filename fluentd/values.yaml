@@ -278,7 +278,8 @@ dashboards:
 ## Fluentd list of plugins to install
 ##
 plugins: 
-  - fluent-plugin-elasticsearch 
+  - fluent-plugin-elasticsearch
+  - elasticsearch:9.0.0
 
 ## Add fluentd config files from K8s configMaps
 ##
