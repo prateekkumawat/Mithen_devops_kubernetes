@@ -280,6 +280,7 @@ dashboards:
 plugins: 
   - fluent-plugin-elasticsearch
   - elasticsearch
+  - fluent-plugin-dedot_filter
 
 ## Add fluentd config files from K8s configMaps
 ##
@@ -346,6 +347,11 @@ fileConfigs:
         skip_container_metadata false
         skip_namespace_metadata true
         skip_master_url true
+      </filter>
+
+      <filter kubernetes.**>
+        @type record_transformer
+        remove_keys $.docker.container_id,$.kubernetes.container_image_id,$.kubernetes.pod_id,$.kubernetes.namespace_id,$.kubernetes.master_url,$.kubernetes.labels.pod-template-hash,$['kubernetes']['labels']['app.kubernetes.io/instance'],$['kubernetes']['labels']['app.kubernetes.io/managed-by'],$['kubernetes']['labels']['app.kubernetes.io/version'],$['kubernetes']['labels']['app.kubernetes.io/name'],$['kubernetes']['labels']['app.kubernetes.io/component'],$['kubernetes']['labels']['app.kubernetes.io/part-of']
       </filter>
 
       <match **>
