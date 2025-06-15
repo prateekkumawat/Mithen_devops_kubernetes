@@ -391,6 +391,7 @@ fileConfigs:
         flush_interval 5s
         # Don't wait for elastic to start up.
         verify_es_version_at_startup true
+        log_es_400_reason true
       </match>
     </label>
 
