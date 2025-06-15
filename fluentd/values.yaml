@@ -384,12 +384,12 @@ fileConfigs:
         scheme http
         index_name fluentd-%Y.%m.%d
         include_timestamp true
-        logstash_format false
+        logstash_format true
         reconnect_on_error true
         reload_connections false
         flush_interval 5s
         # Don't wait for elastic to start up.
-        verify_es_version_at_startup false
+        verify_es_version_at_startup true
       </match>
     </label>
 
