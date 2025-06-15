@@ -279,7 +279,7 @@ dashboards:
 ##
 plugins: 
   - fluent-plugin-elasticsearch
-  - elasticsearch:9.0.0
+  - elasticsearch
 
 ## Add fluentd config files from K8s configMaps
 ##
