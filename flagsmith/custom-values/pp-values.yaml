@@ -5,9 +5,7 @@ api:
 
   separateApiAndFrontend: true
 
-  replicacount: 2
-    deploymentStrategy: null
-    podAnnotations: {}
+  replicacount: 1
   resources:
     limits:
       cpu: 500m
