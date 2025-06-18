@@ -92,7 +92,7 @@ taskProcessor:
   numThreads: null
   gracePeriodMs: null
   queuePopSize: null
-   resources: 
+  resources: 
     limits:
       cpu: 500m
       memory: 500Mi
