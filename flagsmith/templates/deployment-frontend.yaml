@@ -1,0 +1,120 @@
+{{- if and .Values.api.separateApiAndFrontend .Values.frontend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "flagsmith.fullname" . }}
+  {{- $annotations := include "flagsmith.annotations" .Values.common }}
+  {{- with $annotations }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "flagsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    matchLabels:
+      {{- include "flagsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  {{- with .Values.frontend.deploymentStrategy }}
+  strategy: {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  {{- include "flagsmith.replicaCount" .Values.frontend.replicacount | nindent 2 }}
+  template:
+    metadata:
+      {{- if .Values.frontend.podAnnotations }}
+      annotations:
+{{ toYaml .Values.frontend.podAnnotations | indent 8 }}
+      {{- end }}
+      labels:
+        {{- if .Values.common.labels }}
+        {{- .Values.common.labels  | toYaml | nindent 8 }}
+        {{- end }}
+        {{- include "flagsmith.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+        {{- if .Values.frontend.podLabels }}
+{{ toYaml .Values.frontend.podLabels | indent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.frontend.shareProcessNamespace }}
+      shareProcessNamespace: true
+      {{- end }}
+      {{- if .Values.frontend.affinity }}
+      affinity:
+{{ toYaml .Values.frontend.affinity | indent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.frontend.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.tolerations }}
+      tolerations:
+{{ toYaml .Values.frontend.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.schedulerName }}
+      schedulerName: "{{ .Values.frontend.schedulerName }}"
+      {{- end }}
+      {{- with .Values.frontend.image.imagePullSecrets | default .Values.global.image.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- $securityContext := .Values.frontend.podSecurityContext | default (dict) | deepCopy }}
+        {{- if .Values.frontend.defaultPodSecurityContext.enabled }}
+        {{- $securityContext = $securityContext | merge (omit .Values.frontend.defaultPodSecurityContext "enabled") }}
+        {{- end }}
+        {{- toYaml $securityContext | nindent 8 }}
+      {{- if .Values.frontend.serviceAccountName }}
+      serviceAccountName: {{ .Values.frontend.serviceAccountName }}
+      {{- end }}
+{{- with .Values.frontend.extraInitContainers }}
+      initContainers:
+{{- toYaml . | nindent 6 }}
+{{- end }}
+      containers:
+      - name: {{ .Chart.Name }}-frontend
+        image: {{ printf "%s:%s" ( .Values.frontend.image.repository  ) ( .Values.frontend.image.tag  | default .Chart.AppVersion ) }}
+        imagePullPolicy: {{ .Values.frontend.image.imagePullPolicy | default .Values.global.image.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.frontend.port }}
+        env: {{- include "flagsmith.frontend.environment" . | nindent 8 }}
+        livenessProbe:
+          failureThreshold: {{ .Values.frontend.livenessProbe.failureThreshold }}
+          httpGet:
+            path: /health
+            port: {{ .Values.service.frontend.port }}
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.frontend.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.frontend.livenessProbe.periodSeconds }}
+          successThreshold: {{ .Values.frontend.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ .Values.frontend.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          failureThreshold: {{ .Values.frontend.readinessProbe.failureThreshold }}
+          httpGet:
+            path: /health
+            port: {{ .Values.service.frontend.port }}
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.frontend.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.frontend.readinessProbe.periodSeconds }}
+          successThreshold: {{ .Values.frontend.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ .Values.frontend.readinessProbe.timeoutSeconds }}
+        resources:
+{{ toYaml .Values.frontend.resources | indent 10 }}
+        volumeMounts:
+{{ toYaml .Values.frontend.volumeMounts | indent 10 }}
+{{- with .Values.frontend.extraContainers }}
+{{ if typeIs "string" . }}
+    {{- tpl . $ | nindent 6 }}
+{{- else }}
+    {{- tpl (toYaml .) $ | nindent 6 }}
+{{- end }}
+{{- end }}
+      volumes:
+{{- with .Values.frontend.extraVolumes }}
+{{- toYaml . | nindent 6 }}
+{{- end }}
+{{- with .Values.frontend.extraSpec }}
+{{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}

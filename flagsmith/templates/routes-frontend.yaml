@@ -1,0 +1,27 @@
+{{- if .Values.openshift }}{{- if .Values.openshift.route }}{{- if .Values.openshift.route.frontend }}{{- if .Values.openshift.route.frontend.enabled }}
+{{- $fullName := include "flagsmith.fullname" . -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: flagsmith-frontend
+  {{- $annotations := include "flagsmith.annotations" .Values.common }}
+  {{- with $annotations }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "flagsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  {{- if .Values.openshift.route.frontend.host }}
+  host: {{ .Values.openshift.route.frontend.host }}
+  {{- end }}
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: {{ $fullName }}-frontend
+    weight: 100
+  wildcardPolicy: None
+{{- end }}{{- end }}{{- end }}{{- end }}

@@ -1,0 +1,119 @@
+- name: PROMETHEUS_ENABLED
+  value: 'true'
+- name: DATABASE_URL
+  valueFrom:
+    secretKeyRef:
+      {{- if and .Values.databaseExternal.enabled .Values.databaseExternal.urlFromExistingSecret.enabled }}
+      name: {{ .Values.databaseExternal.urlFromExistingSecret.name }}
+      key: {{ .Values.databaseExternal.urlFromExistingSecret.key }}
+      {{- else }}
+      name: {{ template "flagsmith.fullname" . }}
+      key: DATABASE_URL
+      {{- end }}
+- name: DJANGO_SECRET_KEY
+  valueFrom:
+    secretKeyRef:
+      {{ include "flagsmith.api.secretKeySecretRef" . | nindent 6 }}
+{{- if .Values.influxdb2.enabled }}
+- name: INFLUXDB_URL
+  value: http://{{- template "flagsmith.influxdb.hostname" . -}}:80
+- name: INFLUXDB_BUCKET
+  value: {{ .Values.influxdb2.adminUser.bucket }}
+- name: INFLUXDB_ORG
+  value: {{ .Values.influxdb2.adminUser.organization }}
+- name: INFLUXDB_TOKEN
+  valueFrom:
+    secretKeyRef:
+      {{- if .Values.influxdb2.adminUser.existingSecret }}
+      name: {{ .Values.influxdb2.adminUser.existingSecret }}
+      key: admin-token
+      {{- else }}
+      name: {{ template "flagsmith.influxdb.fullname" . }}-auth
+      key: admin-token
+      {{- end }}
+{{- else if .Values.influxdbExternal.enabled }}
+- name: INFLUXDB_URL
+  value: {{ .Values.influxdbExternal.url | required "Must specify a URL for an external InfluxDB" }}
+- name: INFLUXDB_BUCKET
+  value: {{ .Values.influxdbExternal.bucket | required "Must specify a bucket for an external InfluxDB" }}
+- name: INFLUXDB_ORG
+  value: {{ .Values.influxdbExternal.organization | required "Must specify an organization for an external InfluxDB" }}
+- name: INFLUXDB_TOKEN
+  valueFrom:
+    secretKeyRef:
+      {{- if .Values.influxdbExternal.tokenFromExistingSecret.enabled }}
+      name: {{ .Values.influxdbExternal.tokenFromExistingSecret.name | required "Must set secret name for external InfluxDB secret" }}
+      key: {{ .Values.influxdbExternal.tokenFromExistingSecret.key | required "Must set key for external InfluxDB secret" }}
+      {{- else }}
+      name: {{ template "flagsmith.influxdb.fullname" . }}-external-auth
+      key: admin-token
+      {{- end }}
+{{- else if .Values.UsePostgresForAnalytics.enabled }}
+{{- if not .Values.taskProcessor.enabled }}
+{{ fail "To use PostgreSQL for analytics, `taskProcessor.enabled` should be set to `true`" }}
+{{- end}}
+- name: USE_POSTGRES_FOR_ANALYTICS
+  value: 'true'
+{{- else }}
+- name: DISABLE_ANALYTICS_FEATURES
+  value: 'true'
+{{- end }}
+- name: DJANGO_ALLOWED_HOSTS
+  value: '*'
+{{- range $envName, $envValue := .Values.api.extraEnv }}
+- name: {{ $envName }}
+  value: {{ $envValue | quote }}
+{{- end }}
+{{- with .Values.api.statsd }}
+{{- if .enabled }}
+- name: STATSD_HOST
+{{- if .host }}
+  value: {{ .host }}
+{{- else if .hostFromNodeIp }}
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+{{- else if (and $.Values.graphite.enabled $.Values.graphite.autoSetStatsdHostEnvVar) }}
+  value: {{ template "flagsmith.graphite.fullname" $ }}
+{{- else }}
+{{ fail "Must set api.statsd.host or api.statsd.hostFromNodeIp or enable graphite and set graphite.autoSetStatsdHostEnvVar" }}
+{{- end }}
+- name: STATSD_PORT
+  value: {{ .port | quote }}
+{{- if .prefix }}
+- name: STATSD_PREFIX
+  value: {{ .prefix }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .Values.taskProcessor.enabled }}
+- name: TASK_RUN_METHOD
+  value: TASK_PROCESSOR
+{{- end }}
+{{- range $envName, $secretKeyRef := .Values.api.extraEnvFromSecret }}
+- name: {{ $envName }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretKeyRef.secretName }}
+      key: {{ $secretKeyRef.secretKey }}
+{{- end }}
+{{- if .Values.frontend.apiProxy.enabled }}
+- name: USE_X_FORWARDED_HOST
+  value: 'true'
+{{- end }}
+{{- if and .Values._destructiveTests.enabled .Values._destructiveTests.testToken }}
+- name: E2E_TEST_AUTH_TOKEN
+  value: {{ .Values._destructiveTests.testToken | quote }}
+{{- end }}
+{{- if .Values.api.logging.format }}
+- name: LOG_FORMAT
+  value: {{ .Values.api.logging.format }}
+{{- end }}
+{{- if .Values.sse.enabled }}
+- name: SSE_AUTHENTICATION_TOKEN
+  valueFrom:
+    secretKeyRef:
+      {{ include "flagsmith.sse.authenticationTokenSecretRef" . | nindent 6}}
+- name: SSE_SERVER_BASE_URL
+  value: http://{{ include "flagsmith.fullname" . }}-sse.{{ .Release.Namespace }}:{{ .Values.service.sse.port }}
+{{- end }}

@@ -1,0 +1,27 @@
+{{- if .Values.openshift }}{{- if .Values.openshift.route }}{{- if .Values.openshift.route.api }}{{- if .Values.openshift.route.api.enabled }}
+{{- $fullName := include "flagsmith.fullname" . -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: flagsmith-api
+  {{- $annotations := include "flagsmith.annotations" .Values.common }}
+  {{- with $annotations }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "flagsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  {{- if .Values.openshift.route.api.host }}
+  host: {{ .Values.openshift.route.api.host }}
+  {{- end }}
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: {{ $fullName }}-api
+    weight: 100
+  wildcardPolicy: None
+{{- end }}{{- end }}{{- end }}{{- end }}

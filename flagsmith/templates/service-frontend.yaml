@@ -1,0 +1,24 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "flagsmith.fullname" . }}-frontend
+  {{- $annotations := include "flagsmith.annotations" ( dict "customAnnotations" .Values.service.frontend.annotations "commonValues" .Values.common ) }}
+  {{- with $annotations }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "flagsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: {{ .Values.service.frontend.type }}
+  ports:
+    - port: {{ .Values.service.frontend.port }}
+      targetPort: {{ .Values.api.separateApiAndFrontend | ternary .Values.service.frontend.port .Values.service.api.port }}
+      protocol: TCP
+      name: http
+  selector: {{- include "flagsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ if .Values.api.separateApiAndFrontend }}frontend{{ else }}api{{ end }}
+{{- end }}

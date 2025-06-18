@@ -1,0 +1,154 @@
+api:
+  image:
+    repository: flagsmith.docker.scarf.sh/flagsmith/flagsmith-api
+    tag: ""
+
+  separateApiAndFrontend: true
+
+  replicacount: 2
+    deploymentStrategy: null
+    podAnnotations: {}
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 300m
+      memory: 300Mi
+  extraEnv:
+    # Allows authenticating with a local password to Django Admin
+    # See https://docs.flagsmith.com/deployment/configuration/django-admin
+    ENABLE_ADMIN_ACCESS_USER_PASS: true 
+  
+  extraEnvFromSecret: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podSecurityContext: {}
+  defaultPodSecurityContext:
+    enabled: true     
+
+  livenessProbe:
+    # path is the API path to be used for health checks. Used if exec is not set.
+    path: /health/liveness
+    # exec describes an ExecAction command which will run inside the API container.
+    # See https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#Probe
+    exec: {}
+    failureThreshold: 5
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    path: /health/readiness
+    failureThreshold: 10
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 2
+  logging:
+    format: generic # options are generic or json.
+  enableMigrateDbInitContainer: true
+  bootstrap:
+    # Set to `true` to create initial superuser, organisation, and project.
+    # If `adminEmail`, `organisationName` or `projectName` not set, defaults are used.
+    # Bootstrapping does nothing if app database is not empty.
+    enabled: false
+    adminEmail: null
+    organisationName: null
+    projectName: null
+
+frontend:
+  enabled: true
+  image:
+    repository: flagsmith.docker.scarf.sh/flagsmith/flagsmith-frontend
+    tag: ""
+  replicacount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 300m
+      memory: 300Mi
+  apiProxy:
+    enabled: true
+  extraEnv: {}
+  extraEnvFromSecret: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podSecurityContext: {}
+  defaultPodSecurityContext:
+    enabled: true
+
+taskProcessor:
+  image:
+    repository: flagsmith.docker.scarf.sh/flagsmith/flagsmith-frontend
+    tag: ""
+    imagePullPolicy: ""
+    imagePullSecrets: []
+  enabled: false
+  replicacount: 1
+  sleepIntervalMs: null
+  numThreads: null
+  gracePeriodMs: null
+  queuePopSize: null
+   resources: 
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 300m
+      memory: 300Mi
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+postgresql:
+  enabled: true
+  serviceAccount:
+    create: true
+  nameOverride: flagsmith-postgresql
+  auth:
+    postgresPassword: flagsmith
+    database: flagsmith  
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "local-path"
+      size: 2Gi    
+
+influxdb2:
+  enabled: false
+  adminUser:
+    organization: "influxdata"
+    bucket: "default"
+    user: "admin"
+    retention_policy: "0s"
+    ## Leave empty to generate a random password and token.
+    ## Or fill any of these values to use fixed values.
+    password: "".
+    existingSecret: null
+  persistence:
+    enabled: false
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}      
+
+service:
+  api:
+    type: ClusterIP
+    port: 8000
+    annotations: {}
+  frontend:
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+    
+  taskProcessor:
+    type: ClusterIP
+    port: 8000
+    annotations: {}    
