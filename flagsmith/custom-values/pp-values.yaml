@@ -108,7 +108,7 @@ postgresql:
   enabled: true
   serviceAccount:
     create: true
-  nameOverride: flagsmith-postgresql
+  nameOverride: dev-postgresql
   auth:
     postgresPassword: flagsmith
     database: flagsmith  
